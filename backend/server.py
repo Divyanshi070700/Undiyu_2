@@ -28,13 +28,13 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["https://undiyu-2.vercel.app"],  # change this to your frontend URL in production
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # change this to your frontend URL in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 razorpay_client = razorpay.Client(auth=(
     os.getenv("RAZORPAY_KEY_ID"),
@@ -223,33 +223,12 @@ async def shutdown_db_client():
     client.close()
 
 
-
-# @api_router.post("/create-razorpay-order")
-# async def create_razorpay_order(request: Request):
-#     try:
-#         data = await request.json()
-#         print("Received data:", data)
-
-#         amount = int(data.get("amount"))
-#         currency = data.get("currency", "INR")
-
-#         order = razorpay_client.order.create({
-#             "amount": amount,
-#             "currency": currency,
-#             "receipt": f"receipt_{os.urandom(4).hex()}"
-#         })
-
-#         return order
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.post("/api/create-razorpay-order")
 async def create_razorpay_order(request: Request):
     try:
         data = await request.json()
         print("Received data:", data)  # ✅ Add this line here
-
+        
         amount = int(data.get("amount"))
         currency = data.get("currency", "INR")
 
