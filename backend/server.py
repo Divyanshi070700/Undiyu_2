@@ -102,40 +102,40 @@ async def get_status_checks():
     return [StatusCheck(**status_check) for status_check in status_checks]
 
 # Payment endpoints for e-commerce functionality
-# @api_router.post("/create-razorpay-order", response_model=OrderResponse)
-# async def create_razorpay_order(request: CreateOrderRequest):
-#     """
-#     Create a Razorpay order for payment processing
-#     Note: This is a mock implementation for development. 
-#     For production, you would integrate with actual Razorpay API.
-#     """
-#     try:
-#         # Generate a mock order ID
-#         order_id = f"order_{uuid.uuid4().hex[:12]}"
+@api_router.post("/create-razorpay-order", response_model=OrderResponse)
+async def create_razorpay_order(request: CreateOrderRequest):
+    """
+    Create a Razorpay order for payment processing
+    Note: This is a mock implementation for development. 
+    For production, you would integrate with actual Razorpay API.
+    """
+    try:
+        # Generate a mock order ID
+        order_id = f"order_{uuid.uuid4().hex[:12]}"
         
-#         # Store order in database
-#         order_data = {
-#             "id": order_id,
-#             "amount": request.amount,
-#             "currency": request.currency,
-#             "cart": [item.dict() for item in request.cart],
-#             "status": "created",
-#             "created_at": datetime.utcnow()
-#         }
+        # Store order in database
+        order_data = {
+            "id": order_id,
+            "amount": request.amount,
+            "currency": request.currency,
+            "cart": [item.dict() for item in request.cart],
+            "status": "created",
+            "created_at": datetime.utcnow()
+        }
         
-#         await db.orders.insert_one(order_data)
+        await db.orders.insert_one(order_data)
         
-#         # Return mock Razorpay order response
-#         return OrderResponse(
-#             id=order_id,
-#             amount=request.amount,
-#             currency=request.currency,
-#             status="created"
-#         )
+        # Return mock Razorpay order response
+        return OrderResponse(
+            id=order_id,
+            amount=request.amount,
+            currency=request.currency,
+            status="created"
+        )
         
-#     except Exception as e:
-#         logging.error(f"Error creating order: {str(e)}")
-#         raise HTTPException(status_code=500, detail="Failed to create order")
+    except Exception as e:
+        logging.error(f"Error creating order: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create order")
 
 @api_router.post("/verify-payment", response_model=PaymentVerificationResponse)
 async def verify_payment(request: VerifyPaymentRequest):
@@ -224,31 +224,11 @@ async def shutdown_db_client():
 
 
 
-@api_router.post("/create-razorpay-order")
-async def create_razorpay_order(request: Request):
-    try:
-        data = await request.json()
-        print("Received data:", data)
-
-        amount = int(data.get("amount"))
-        currency = data.get("currency", "INR")
-
-        order = razorpay_client.order.create({
-            "amount": amount,
-            "currency": currency,
-            "receipt": f"receipt_{os.urandom(4).hex()}"
-        })
-
-        return order
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# @app.post("/api/create-razorpay-order")
+# @api_router.post("/create-razorpay-order")
 # async def create_razorpay_order(request: Request):
 #     try:
 #         data = await request.json()
-#         print("Received data:", data)  # ✅ Add this line here
+#         print("Received data:", data)
 
 #         amount = int(data.get("amount"))
 #         currency = data.get("currency", "INR")
@@ -262,3 +242,23 @@ async def create_razorpay_order(request: Request):
 #         return order
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/create-razorpay-order")
+async def create_razorpay_order(request: Request):
+    try:
+        data = await request.json()
+        print("Received data:", data)  # ✅ Add this line here
+
+        amount = int(data.get("amount"))
+        currency = data.get("currency", "INR")
+
+        order = razorpay_client.order.create({
+            "amount": amount,
+            "currency": currency,
+            "receipt": f"receipt_{os.urandom(4).hex()}"
+        })
+
+        return order
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
