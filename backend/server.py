@@ -12,6 +12,9 @@ from datetime import datetime
 import hashlib
 import hmac
 
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+import razorpay
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,6 +26,20 @@ db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # change this to your frontend URL in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+razorpay_client = razorpay.Client(auth=(
+    os.getenv("RAZORPAY_KEY_ID"),
+    os.getenv("RAZORPAY_KEY_SECRET")
+))
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -204,3 +221,21 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+@app.post("/api/create-razorpay-order")
+async def create_razorpay_order(request: Request):
+    try:
+        data = await request.json()
+        amount = data.get("amount")
+        currency = data.get("currency", "INR")
+
+        order = razorpay_client.order.create({
+            "amount": amount,
+            "currency": currency,
+            "receipt": f"receipt_{os.urandom(4).hex()}"
+        })
+
+        return order
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
