@@ -227,7 +227,9 @@ async def shutdown_db_client():
 async def create_razorpay_order(request: Request):
     try:
         data = await request.json()
-        amount = data.get("amount")
+        print("Received data:", data)  # ✅ Add this line here
+        
+        amount = int(data.get("amount"))
         currency = data.get("currency", "INR")
 
         order = razorpay_client.order.create({
